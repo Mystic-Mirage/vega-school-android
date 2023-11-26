@@ -1,4 +1,4 @@
-package com.lesiwka.novyny;
+package net.m10e.vegamoodleandroid;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 

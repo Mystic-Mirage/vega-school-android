@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.lesiwka.novyny'
+    namespace 'net.m10e.vegamoodleandroid'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.lesiwka.novyny"
+        applicationId 'net.m10e.vegamoodleandroid'
         minSdk 21
         targetSdk 34
         versionCode 5
