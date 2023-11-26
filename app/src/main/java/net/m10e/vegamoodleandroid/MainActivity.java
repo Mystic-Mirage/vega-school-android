@@ -217,11 +217,7 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         WebView mWebView = findViewById(R.id.webview);
-        mWebView.evaluateJavascript("collapse()", value -> {
-            if (!value.equals("true")) {
-                super.onBackPressed();
-            }
-        });
+        mWebView.goBack();
     }
 
     @Override
