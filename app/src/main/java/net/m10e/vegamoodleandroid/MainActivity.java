@@ -81,10 +81,8 @@ public class MainActivity extends Activity {
 
     private class MyWebChromeClient extends WebChromeClient {
         @Override
-        public boolean onShowFileChooser(
-                WebView view, ValueCallback<Uri[]> filePathCallback,
-                WebChromeClient.FileChooserParams fileChooserParams) {
-            if(mFilePathCallback != null) {
+        public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+            if (mFilePathCallback != null) {
                 mFilePathCallback.onReceiveValue(null);
             }
             mFilePathCallback = filePathCallback;
@@ -145,23 +143,21 @@ public class MainActivity extends Activity {
                 .setMimeType(mimeType)
                 .addRequestHeader("Cookie", cookies)
                 .addRequestHeader("User-Agent", userAgent)
-                .setTitle(fileName)
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             registerReceiver(new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    final File downloadedTo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-                    if (downloadedTo.exists()) {
-                        startActivity(
-                            new Intent(Intent.ACTION_VIEW)
-//                            .setData(Uri.fromFile(downloadedTo))
-                            .setData(FileProvider.getUriForFile(context, getPackageName() + ".provider", downloadedTo))
-                            .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        );
-                    }
+                    final long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
+                    if (downloadId == 0) return;
+
+                    final Uri downloadedUri = downloadManager.getUriForDownloadedFile(downloadId);
+                    startActivity(
+                        new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(downloadedUri, mimeType)
+                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    );
                 }
             }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
             downloadManager.enqueue(request);
