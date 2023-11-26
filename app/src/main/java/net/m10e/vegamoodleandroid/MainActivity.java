@@ -1,11 +1,16 @@
 package net.m10e.vegamoodleandroid;
 
+import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -16,6 +21,9 @@ import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.Base64;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -126,6 +134,40 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class MyDownloadListener implements DownloadListener {
+        @SuppressLint("UnspecifiedRegisterReceiverFlag")
+        @Override
+        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+            final String cookies = CookieManager.getInstance().getCookie(url);
+            final String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                .setMimeType(mimeType)
+                .addRequestHeader("Cookie", cookies)
+                .addRequestHeader("User-Agent", userAgent)
+                .setTitle(fileName)
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+            DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    final File downloadedTo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+                    if (downloadedTo.exists()) {
+                        startActivity(
+                            new Intent(Intent.ACTION_VIEW)
+//                            .setData(Uri.fromFile(downloadedTo))
+                            .setData(FileProvider.getUriForFile(context, getPackageName() + ".provider", downloadedTo))
+                            .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        );
+                    }
+                }
+            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+            downloadManager.enqueue(request);
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +191,7 @@ public class MainActivity extends Activity {
         mWebView.setOnLongClickListener(v -> true);
         mWebView.setWebViewClient(new MyWebViewClient());
         mWebView.setWebChromeClient(new MyWebChromeClient());
+        mWebView.setDownloadListener(new MyDownloadListener());
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setAllowFileAccess(true);
