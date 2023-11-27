@@ -1,6 +1,5 @@
 package net.m10e.vegamoodleandroid;
 
-import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
@@ -222,7 +221,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
+        if (requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
             super.onActivityResult(requestCode, resultCode, data);
             return;
         }
