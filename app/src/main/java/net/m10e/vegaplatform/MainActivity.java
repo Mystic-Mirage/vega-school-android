@@ -1,4 +1,4 @@
-package net.m10e.vegamoodleandroid;
+package net.m10e.vegaplatform;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 

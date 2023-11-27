@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Vega Moodle</string>
+    <string name="app_name">Vega Platform</string>
     <string name="url_hostname">vega.net.ua</string>
     <string name="url_protocol">https</string>
     <string name="url_port"></string>
