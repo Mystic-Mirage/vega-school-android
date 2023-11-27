@@ -33,6 +33,7 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends Activity {
     private String hostName;
@@ -42,10 +43,6 @@ public class MainActivity extends Activity {
     public static final int INPUT_FILE_REQUEST_CODE = 1;
     private ValueCallback<Uri[]> mFilePathCallback;
     private String mCameraPhotoPath;
-
-    private static final String ANY_TYPES = "*/*";
-    private static final String CAPTURE_IMAGE_DIRECTORY = "vega-platform";
-    private static final String CAPTURE_IMAGE_PREFIX = "vp_";
 
     private class MyWebViewClient extends WebViewClient {
         @Override
@@ -82,15 +79,6 @@ public class MainActivity extends Activity {
     }
 
     private class MyWebChromeClient extends WebChromeClient {
-        private File getFileForImageCapture() {
-            File externalDataDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            File cameraDataDir = new File(externalDataDir.getAbsolutePath() + File.separator + CAPTURE_IMAGE_DIRECTORY);
-            if (!cameraDataDir.exists() && !cameraDataDir.mkdirs()) {
-                cameraDataDir = externalDataDir;
-            }
-            return new File(cameraDataDir.getAbsolutePath() + File.separator + CAPTURE_IMAGE_PREFIX + System.currentTimeMillis() + ".jpg");
-        }
-
         @Override
         public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
             if (mFilePathCallback != null) {
@@ -99,17 +87,43 @@ public class MainActivity extends Activity {
             mFilePathCallback = filePathCallback;
 
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            File photoFile = getFileForImageCapture();
-            mCameraPhotoPath = "file:" + photoFile.getAbsolutePath();
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+
+            File photoFile = null;
+            try {
+                photoFile = File.createTempFile("vega_", ".jpg", storageDir);
+            } catch (IOException ex) {
+                AlertDialog alert = new AlertDialog.Builder(view.getContext())
+                    .setTitle(R.string.error_camera_title)
+                    .setMessage(errorMessage)
+                    .setPositiveButton(R.string.error_button, (dialog, whichButton) -> view.reload())
+                    .create();
+
+                alert.show();
+                ((TextView) alert.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+            }
+
+            if (photoFile != null) {
+                mCameraPhotoPath = "file:" + photoFile.getAbsolutePath();
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            } else {
+                cameraIntent = null;
+            }
 
             Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
             contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-            contentSelectionIntent.setType(ANY_TYPES);
+            contentSelectionIntent.setType("*/*");
+
+            Intent[] intentArray;
+            if (cameraIntent != null) {
+                intentArray = new Intent[]{cameraIntent};
+            } else {
+                intentArray = new Intent[0];
+            }
 
             Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
             chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
 
             startActivityForResult(chooserIntent, INPUT_FILE_REQUEST_CODE);
 
