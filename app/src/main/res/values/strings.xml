@@ -3,7 +3,7 @@
     <string name="url_hostname">vega.net.ua</string>
     <string name="url_protocol">https</string>
     <string name="url_port"></string>
-    <string name="user_agent_template">VegaSchoolApp/%d (%s; %s) %s</string>
+    <string name="user_agent_template">VegaPlatformApp/%d (%s; %s) %s</string>
     <string name="error_title">Виникла помилка завантаження</string>
     <string name="error_camera_title">Виникла помилка створення світлини</string>
     <string name="error_button">Оновити</string>
