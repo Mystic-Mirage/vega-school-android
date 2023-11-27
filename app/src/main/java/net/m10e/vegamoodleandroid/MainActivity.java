@@ -216,7 +216,11 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         WebView mWebView = findViewById(R.id.webview);
-        mWebView.goBack();
+        if (mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
