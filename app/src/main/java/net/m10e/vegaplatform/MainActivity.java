@@ -163,10 +163,18 @@ public class MainActivity extends Activity {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        File[] contents = getCameraDataDir().listFiles(file -> System.currentTimeMillis() - file.lastModified() > 86400000);
+        if (contents != null) {
+            for (File file: contents) {
+                file.delete();
+            }
+        }
 
         hostName = getString(R.string.url_hostname);
         String hostNameWithPort = hostName;
