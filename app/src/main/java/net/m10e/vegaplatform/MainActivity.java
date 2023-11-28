@@ -169,7 +169,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        File[] contents = getCameraDataDir().listFiles(file -> System.currentTimeMillis() - file.lastModified() > 86400000);
+        File[] contents = getCameraDataDir().listFiles(file -> {
+            String name = file.getName();
+            long age = System.currentTimeMillis() - file.lastModified();
+            return name.startsWith(CAPTURE_IMAGE_PREFIX) && name.endsWith(CAPTURE_IMAGE_SUFFIX) && (file.length() == 0 || age > 5184e6);
+        });
         if (contents != null) {
             for (File file: contents) {
                 file.delete();
@@ -218,18 +222,6 @@ public class MainActivity extends Activity {
         webSettings.setUserAgentString(String.format(userAgentTemplate, versionCode, appName, hostNameWithPort, userAgent));
 
         mWebView.loadUrl(url);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    @Override
-    public void onDestroy() {
-        File[] contents = getCameraDataDir().listFiles((dir, name) -> name.startsWith(CAPTURE_IMAGE_PREFIX) && name.endsWith(CAPTURE_IMAGE_SUFFIX));
-        if (contents != null) {
-            for (File file: contents) {
-                file.delete();
-            }
-        }
-        super.onDestroy();
     }
 
     @Override
